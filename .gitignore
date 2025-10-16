@@ -3,4 +3,5 @@ node_modules/
 login_log.txt
 login_log.json
 stats.json
+backups/
 .DS_Store
