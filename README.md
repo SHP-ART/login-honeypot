@@ -24,9 +24,16 @@ Eine moderne, interaktive Fake-Login-Seite zu Demonstrationszwecken mit erweiter
 
 ## Installation
 
+### Schnellstart
+
 ```bash
+git clone https://github.com/SHP-ART/login-honeypot.git
+cd login-honeypot
 npm install
+npm run pm2:start
 ```
+
+📖 **Vollständige Installations-Anleitung:** Siehe [INSTALLATION.md](INSTALLATION.md)
 
 ## Verwendung
 
