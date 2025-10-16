@@ -59,7 +59,7 @@
                 this.size = Math.random() * 3 + 1;
                 this.speedX = Math.random() * 0.5 - 0.25;
                 this.speedY = Math.random() * 0.5 - 0.25;
-                this.color = `rgba(${Math.random() * 100 + 155}, ${Math.random() * 100 + 155}, 255, ${Math.random() * 0.5 + 0.3})`;
+                this.color = `rgba(255, 255, 255, ${Math.random() * 0.5 + 0.3})`;
             }
 
             update() {
@@ -105,7 +105,7 @@
 
         // Animation
         function animate() {
-            ctx.fillStyle = 'rgba(30, 60, 114, 0.05)';
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             // Zeichne Verbindungen zwischen nahen Partikeln
@@ -201,7 +201,7 @@
 
                 setTimeout(() => {
                     container.style.display = 'none';
-                    document.body.style.background = '#1e3c72';
+                    document.body.style.background = '#000000';
                 }, 500);
             } catch (error) {
                 messageDiv.textContent = 'Fehler bei der Anmeldung';
