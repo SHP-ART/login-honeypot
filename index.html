@@ -178,8 +178,6 @@
                 });
 
                 const data = await response.json();
-                messageDiv.textContent = data.message;
-                messageDiv.className = data.success ? 'success' : 'error';
 
                 // Zähler aktualisieren bei Fehler
                 if (!data.success && data.stats) {
@@ -193,10 +191,18 @@
                     setTimeout(() => counter.classList.remove('pulse'), 300);
                 }
 
-                // Formular NICHT zurücksetzen bei Fehler
-                if (data.success) {
-                    document.getElementById('loginForm').reset();
-                }
+                // Login-Box ausblenden und leere Seite zeigen
+                const loginBox = document.querySelector('.login-box');
+                const container = document.querySelector('.container');
+
+                // Fade-out Animation
+                loginBox.style.transition = 'opacity 0.5s ease';
+                loginBox.style.opacity = '0';
+
+                setTimeout(() => {
+                    container.style.display = 'none';
+                    document.body.style.background = '#1e3c72';
+                }, 500);
             } catch (error) {
                 messageDiv.textContent = 'Fehler bei der Anmeldung';
                 messageDiv.className = 'error';
