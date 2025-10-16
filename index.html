@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anmeldung</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <canvas id="background-canvas"></canvas>
+    <div id="counter">
+        <div class="stat-item">
+            <div class="stat-label">h</div>
+            <div class="stat-value" id="count-hour">0</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-label">d</div>
+            <div class="stat-value" id="count-day">0</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-label">m</div>
+            <div class="stat-value" id="count-month">0</div>
+        </div>
+    </div>
+    <div class="container">
+        <div class="login-box">
+            <h1>Anmeldung</h1>
+            <form id="loginForm">
+                <div class="input-group">
+                    <label for="name">Name</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div class="input-group">
+                    <label for="kennwort">Kennwort</label>
+                    <input type="password" id="kennwort" name="kennwort" required>
+                </div>
+                <button type="submit">Anmelden</button>
+                <div id="message"></div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Interaktiver Canvas Hintergrund
+        const canvas = document.getElementById('background-canvas');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let mouseX = canvas.width / 2;
+        let mouseY = canvas.height / 2;
+
+        // Partikel-System
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 3 + 1;
+                this.speedX = Math.random() * 0.5 - 0.25;
+                this.speedY = Math.random() * 0.5 - 0.25;
+                this.color = `rgba(${Math.random() * 100 + 155}, ${Math.random() * 100 + 155}, 255, ${Math.random() * 0.5 + 0.3})`;
+            }
+
+            update() {
+                // Bewegung zur Maus hin
+                const dx = mouseX - this.x;
+                const dy = mouseY - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                if (distance < 150) {
+                    const force = (150 - distance) / 150;
+                    this.x -= (dx / distance) * force * 2;
+                    this.y -= (dy / distance) * force * 2;
+                }
+
+                // Normale Bewegung
+                this.x += this.speedX;
+                this.y += this.speedY;
+
+                // Grenzen
+                if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+            }
+
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // Erstelle Partikel
+        const particles = [];
+        for (let i = 0; i < 100; i++) {
+            particles.push(new Particle());
+        }
+
+        // Maus-Tracking
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
+
+        // Animation
+        function animate() {
+            ctx.fillStyle = 'rgba(30, 60, 114, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Zeichne Verbindungen zwischen nahen Partikeln
+            for (let i = 0; i < particles.length; i++) {
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < 120) {
+                        ctx.strokeStyle = `rgba(255, 255, 255, ${0.2 - distance / 600})`;
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+
+            // Update und zeichne Partikel
+            particles.forEach(particle => {
+                particle.update();
+                particle.draw();
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+
+        // Resize Handler
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        // Statistik beim Laden abrufen
+        async function loadStats() {
+            try {
+                const response = await fetch('/stats');
+                const stats = await response.json();
+
+                document.getElementById('count-hour').textContent = stats.hour;
+                document.getElementById('count-day').textContent = stats.day;
+                document.getElementById('count-month').textContent = stats.month;
+            } catch (error) {
+                console.error('Fehler beim Laden der Statistik:', error);
+            }
+        }
+
+        // Statistik beim Seitenaufruf laden
+        loadStats();
+
+        // Login Form Handler
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const name = document.getElementById('name').value;
+            const kennwort = document.getElementById('kennwort').value;
+            const messageDiv = document.getElementById('message');
+
+            try {
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ name, kennwort })
+                });
+
+                const data = await response.json();
+                messageDiv.textContent = data.message;
+                messageDiv.className = data.success ? 'success' : 'error';
+
+                // Zähler aktualisieren bei Fehler
+                if (!data.success && data.stats) {
+                    document.getElementById('count-hour').textContent = data.stats.hour;
+                    document.getElementById('count-day').textContent = data.stats.day;
+                    document.getElementById('count-month').textContent = data.stats.month;
+
+                    // Animation für Zähler
+                    const counter = document.getElementById('counter');
+                    counter.classList.add('pulse');
+                    setTimeout(() => counter.classList.remove('pulse'), 300);
+                }
+
+                // Formular NICHT zurücksetzen bei Fehler
+                if (data.success) {
+                    document.getElementById('loginForm').reset();
+                }
+            } catch (error) {
+                messageDiv.textContent = 'Fehler bei der Anmeldung';
+                messageDiv.className = 'error';
+            }
+        });
+    </script>
+</body>
+</html>

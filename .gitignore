@@ -1,0 +1,6 @@
+node_modules/
+*.log
+login_log.txt
+login_log.json
+stats.json
+.DS_Store
