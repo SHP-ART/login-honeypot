@@ -59,6 +59,37 @@ npm run pm2:monit     # Monitoring
 
 📖 **Vollständige PM2 Anleitung:** Siehe [PM2_GUIDE.md](PM2_GUIDE.md)
 
+## Updates
+
+### Automatisches Update (empfohlen)
+
+```bash
+./update.sh
+```
+
+Das Update-Script:
+- ✅ Prüft auf Updates von GitHub
+- ✅ Zeigt Änderungen vor dem Update an
+- ✅ Stoppt PM2 automatisch (falls aktiv)
+- ✅ Aktualisiert Repository und Dependencies
+- ✅ Startet PM2 automatisch neu
+- ✅ Backup von lokalen Änderungen (optional)
+
+### Manuelles Update
+
+```bash
+# Repository aktualisieren
+git pull origin main
+
+# Dependencies aktualisieren
+npm install
+
+# Server neu starten
+npm run pm2:restart  # Mit PM2
+# oder
+npm start            # Ohne PM2
+```
+
 ## Logs
 
 Alle Anmeldeversuche werden gespeichert in:
