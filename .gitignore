@@ -4,4 +4,6 @@ login_log.txt
 login_log.json
 stats.json
 backups/
+logs/
 .DS_Store
+.env

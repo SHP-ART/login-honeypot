@@ -30,12 +30,34 @@ npm install
 
 ## Verwendung
 
+### Entwicklung (lokal)
+
 Server starten:
 ```bash
 npm start
 ```
 
 Die Anwendung läuft dann auf `http://localhost:3000`
+
+### Produktion (mit PM2)
+
+Für Produktionsumgebungen wird PM2 empfohlen:
+
+```bash
+# PM2 installieren
+npm install pm2 -g
+
+# Server mit PM2 starten
+npm run pm2:start
+
+# Weitere PM2 Befehle
+npm run pm2:stop      # Server stoppen
+npm run pm2:restart   # Server neu starten
+npm run pm2:logs      # Logs anzeigen
+npm run pm2:monit     # Monitoring
+```
+
+📖 **Vollständige PM2 Anleitung:** Siehe [PM2_GUIDE.md](PM2_GUIDE.md)
 
 ## Logs
 
