@@ -33,7 +33,10 @@ npm install
 npm run pm2:start
 ```
 
-📖 **Vollständige Installations-Anleitung:** Siehe [INSTALLATION.md](INSTALLATION.md)
+📖 **Anleitungen:**
+- [INSTALLATION.md](INSTALLATION.md) - Vollständige Installation
+- [NGINX_PROXY_MANAGER.md](NGINX_PROXY_MANAGER.md) - Setup mit Nginx Proxy Manager
+- [PM2_GUIDE.md](PM2_GUIDE.md) - PM2 Production Setup
 
 ## Verwendung
 

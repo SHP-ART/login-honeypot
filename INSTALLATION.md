@@ -216,7 +216,21 @@ pm2 list
 
 ---
 
-## Mit Domain verwenden (Nginx)
+## Mit Domain verwenden
+
+### Option 1: Nginx Proxy Manager (empfohlen für Einsteiger)
+
+📖 **Siehe vollständige Anleitung:** [NGINX_PROXY_MANAGER.md](NGINX_PROXY_MANAGER.md)
+
+**Schnell-Setup:**
+1. Öffne Nginx Proxy Manager Web-GUI (Port 81)
+2. Erstelle neuen Proxy Host
+3. Domain: `login.example.com`
+4. Forward zu: `localhost:3000`
+5. SSL aktivieren (Let's Encrypt)
+6. Fertig!
+
+### Option 2: Nginx (direkt)
 
 ### Nginx installieren
 
