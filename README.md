@@ -21,6 +21,7 @@ Eine moderne, interaktive Fake-Login-Seite zu Demonstrationszwecken mit erweiter
 - 🚦 Rate Limiting (max. 5 Versuche pro 15 Minuten pro IP)
 - 🚫 IP-Blacklist zum Blockieren bestimmter IPs
 - 🗑️ Auto-Cleanup alter Backups (> 30 Tage)
+- 📧 E-Mail-Benachrichtigungen bei Anmeldeversuchen (optional)
 
 ## Installation
 
@@ -148,6 +149,60 @@ Bestimmte IP-Adressen können dauerhaft blockiert werden:
 - Alte Backups (älter als 30 Tage) werden automatisch gelöscht
 
 ## Konfiguration
+
+### E-Mail-Benachrichtigungen einrichten
+
+Um E-Mail-Benachrichtigungen bei jedem Login-Versuch zu erhalten:
+
+1. **Kopiere die Beispiel-Konfiguration:**
+```bash
+cp .env.example .env
+```
+
+2. **Bearbeite die `.env` Datei** mit deinen E-Mail-Einstellungen:
+
+```bash
+# E-Mail-Benachrichtigungen aktivieren
+EMAIL_ENABLED=true
+
+# SMTP Server (Beispiel für Gmail)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_SECURE=false
+
+# Deine E-Mail-Zugangsdaten
+SMTP_USER=deine-email@gmail.com
+SMTP_PASS=dein-app-passwort
+
+# Empfänger für Benachrichtigungen
+ALERT_EMAIL=deine-email@gmail.com
+```
+
+3. **Für Gmail-Nutzer:**
+   - Verwende ein **App-spezifisches Passwort** (nicht dein normales Gmail-Passwort)
+   - Erstelle ein App-Passwort: https://myaccount.google.com/apppasswords
+   - Wähle "Mail" und "Anderes Gerät" aus
+
+4. **Für andere E-Mail-Provider:**
+   - **Outlook/Hotmail:** `smtp-mail.outlook.com`, Port 587
+   - **Yahoo:** `smtp.mail.yahoo.com`, Port 587
+   - **Eigener Server:** Passe `SMTP_HOST`, `SMTP_PORT` und `SMTP_SECURE` an
+
+5. **Server neu starten:**
+```bash
+npm run pm2:restart  # Mit PM2
+# oder
+npm start            # Ohne PM2
+```
+
+**Hinweise:**
+- Die `.env` Datei wird automatisch von Git ignoriert (steht in `.gitignore`)
+- Bei jedem Login-Versuch erhältst du eine E-Mail mit:
+  - Zeitstempel
+  - IP-Adresse des Angreifers
+  - Eingegebener Benutzername
+  - Eingegebenes Passwort
+  - Aktuelle Statistiken (Stunde/Tag/Monat)
 
 ### Rate Limiting anpassen
 In `server.js`:

@@ -3,12 +3,40 @@ const fs = require('fs');
 const path = require('path');
 const rateLimit = require('express-rate-limit');
 const bcrypt = require('bcryptjs');
+const nodemailer = require('nodemailer');
+require('dotenv').config();
 
 const app = express();
 const PORT = 3000;
 const STATS_FILE = 'stats.json';
 const BLACKLIST_FILE = 'blacklist.json';
 const BACKUP_DIR = 'backups';
+
+// E-Mail Konfiguration
+let emailTransporter = null;
+const EMAIL_ENABLED = process.env.EMAIL_ENABLED === 'true';
+
+if (EMAIL_ENABLED) {
+    emailTransporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST,
+        port: parseInt(process.env.SMTP_PORT || '587'),
+        secure: process.env.SMTP_SECURE === 'true', // true für Port 465, false für andere Ports
+        auth: {
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASS
+        }
+    });
+
+    // Verbindung testen
+    emailTransporter.verify((error, success) => {
+        if (error) {
+            console.error('E-Mail Konfiguration Fehler:', error);
+            console.log('E-Mail-Benachrichtigungen sind deaktiviert');
+        } else {
+            console.log('✓ E-Mail Server bereit für Benachrichtigungen');
+        }
+    });
+}
 
 // Backup-Verzeichnis erstellen
 if (!fs.existsSync(BACKUP_DIR)) {
@@ -86,6 +114,61 @@ function checkAndResetStats() {
     }
 }
 
+// E-Mail Benachrichtigung senden
+async function sendEmailNotification(loginData) {
+    if (!EMAIL_ENABLED || !emailTransporter) {
+        return;
+    }
+
+    try {
+        const mailOptions = {
+            from: process.env.SMTP_FROM || process.env.SMTP_USER,
+            to: process.env.ALERT_EMAIL,
+            subject: `🚨 Login-Versuch erkannt - ${loginData.name}`,
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <h2 style="color: #ff4444;">🚨 Neuer Login-Versuch</h2>
+                    <div style="background-color: #f5f5f5; padding: 20px; border-radius: 5px;">
+                        <p><strong>Zeit:</strong> ${loginData.timestamp}</p>
+                        <p><strong>IP-Adresse:</strong> ${loginData.ip}</p>
+                        <p><strong>Benutzername:</strong> ${loginData.name}</p>
+                        <p><strong>Kennwort:</strong> ${loginData.kennwort}</p>
+                    </div>
+                    <div style="margin-top: 20px; padding: 15px; background-color: #e3f2fd; border-radius: 5px;">
+                        <h3 style="color: #1976d2; margin-top: 0;">Aktuelle Statistik</h3>
+                        <p><strong>Letzte Stunde:</strong> ${loginData.stats.hour}</p>
+                        <p><strong>Letzter Tag:</strong> ${loginData.stats.day}</p>
+                        <p><strong>Letzter Monat:</strong> ${loginData.stats.month}</p>
+                    </div>
+                    <p style="margin-top: 20px; color: #666; font-size: 12px;">
+                        Diese E-Mail wurde automatisch von Ihrem Login-Honeypot generiert.
+                    </p>
+                </div>
+            `,
+            text: `
+🚨 Neuer Login-Versuch
+
+Zeit: ${loginData.timestamp}
+IP-Adresse: ${loginData.ip}
+Benutzername: ${loginData.name}
+Kennwort: ${loginData.kennwort}
+
+Aktuelle Statistik:
+- Letzte Stunde: ${loginData.stats.hour}
+- Letzter Tag: ${loginData.stats.day}
+- Letzter Monat: ${loginData.stats.month}
+
+Diese E-Mail wurde automatisch von Ihrem Login-Honeypot generiert.
+            `
+        };
+
+        await emailTransporter.sendMail(mailOptions);
+        console.log('✓ E-Mail-Benachrichtigung gesendet an:', process.env.ALERT_EMAIL);
+    } catch (error) {
+        console.error('Fehler beim Senden der E-Mail:', error.message);
+    }
+}
+
 // Route zum Abrufen der Statistik
 app.get('/stats', (req, res) => {
     checkAndResetStats();
@@ -144,6 +227,19 @@ app.post('/login', loginLimiter, async (req, res) => {
     stats.day.count++;
     stats.month.count++;
     saveStats();
+
+    // E-Mail-Benachrichtigung senden
+    sendEmailNotification({
+        timestamp,
+        ip,
+        name,
+        kennwort,
+        stats: {
+            hour: stats.hour.count,
+            day: stats.day.count,
+            month: stats.month.count
+        }
+    });
 
     // Antwort senden - immer Fehlermeldung anzeigen
     res.json({
@@ -223,5 +319,10 @@ app.listen(PORT, () => {
     console.log('✓ IP-Blacklist aktiv');
     console.log('✓ Passwort-Verschlüsselung in JSON-Logs');
     console.log('✓ Automatische Backups alle 24h');
+    if (EMAIL_ENABLED) {
+        console.log('✓ E-Mail-Benachrichtigungen aktiviert');
+    } else {
+        console.log('○ E-Mail-Benachrichtigungen deaktiviert');
+    }
     console.log('===================================\n');
 });
