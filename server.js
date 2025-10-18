@@ -74,6 +74,8 @@ const loginLimiter = rateLimit({
     message: { error: 'Zu viele Anmeldeversuche. Bitte versuchen Sie es später erneut.' },
     standardHeaders: true,
     legacyHeaders: false,
+    // Trust proxy ist konfiguriert - wir validieren die IP durch Nginx
+    validate: { trustProxy: false }
 });
 
 // Middleware
