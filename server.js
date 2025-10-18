@@ -7,6 +7,10 @@ const nodemailer = require('nodemailer');
 require('dotenv').config();
 
 const app = express();
+
+// Trust proxy - wichtig für Nginx Proxy Manager und korrekte IP-Erkennung
+app.set('trust proxy', true);
+
 const PORT = 3000;
 const STATS_FILE = 'stats.json';
 const BLACKLIST_FILE = 'blacklist.json';
